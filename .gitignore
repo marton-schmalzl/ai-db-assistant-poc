@@ -1,0 +1,96 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.whl
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tgz
+*.pth
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage
+.coverage
+.pytest_cache/
+nosetests.xml
+doctests.txt
+tox.ini
+*.tox
+*.egg
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+__pycache__/
+*.sqlite3
+*.sqlitedb
+
+# Sphinx documentation
+_build/
+htmlcov/
+.doctrees/
+*.pickle
+
+# MkDocs documentation
+/.mkdocs-cache/
+/mkdocs-site/
+
+# Passlib
+.passlib/
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.sock
+
+# VS Code
+.vscode/
+
+# Other
+*.log
+*.bak
+*.swp
+*.swo
+*~
+*.orig
+*.py.swp
+*.un~
+.DS_Store
+local.session.sql
