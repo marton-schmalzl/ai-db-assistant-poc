@@ -7,7 +7,7 @@ from ai_backends.lm_studio import LmStudioAI
 from ai_backends.gemini_ai import GeminiAI
 from ai_backends.deepseek_ai import DeepSeekAI
 
-load_dotenv()
+load_dotenv(override=True)
 
 def get_db_connection(debug=False):
     db_host = input("Enter MySQL Host (default: localhost): ") or "localhost"
