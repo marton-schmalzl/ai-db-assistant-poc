@@ -3,10 +3,11 @@ import mysql.connector
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
+from ai_backends.lm_studio import LmStudioAI
 from ai_backends.gemini_ai import GeminiAI
 from ai_backends.deepseek_ai import DeepSeekAI
+
+load_dotenv()
 
 def get_db_connection(debug=False):
     db_host = input("Enter MySQL Host (default: localhost): ") or "localhost"
@@ -43,7 +44,7 @@ def get_db_schema(conn):
 
         cursor.execute("SHOW TABLES")
         tables = [table[0] for table in cursor.fetchall()]
-        for table_name in tables:
+        for table_name in tables:   
             sql_schema += f"-- Table: {table_name}\n"
             sql_schema += f"CREATE TABLE {table_name} (\n"
             cursor.execute(f"DESCRIBE {table_name}")
@@ -92,6 +93,8 @@ def generate_sql_query(prompt, schema, ai_backend_name):
         ai_backend = GeminiAI()
     elif ai_backend_name == "deepseek":
         ai_backend = DeepSeekAI()
+    elif ai_backend_name == "lm-studio":
+        ai_backend = LmStudioAI()
     else:
         raise ValueError(f"Unsupported AI backend: {ai_backend_name}")
     return ai_backend.generate_query(prompt, schema)
