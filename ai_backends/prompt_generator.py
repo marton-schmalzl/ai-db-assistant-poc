@@ -1,10 +1,11 @@
-def generate_prompt(schema, prompt):
+def generate_prompt(schema, prompt, history=None):
     """
-    Generates a prompt string from the schema and prompt using a unified template.
+    Generates a prompt string from the schema, prompt, and conversation history using a unified template.
 
     Args:
         schema (str): The database schema.
         prompt (str): The user question.
+        history (list): A list of tuples, where each tuple contains the user's question and the AI's response.
 
     Returns:
         str: The generated prompt string.
@@ -22,6 +23,20 @@ def generate_prompt(schema, prompt):
         Database Schema:
         {schema}
 
+        This prompt includes history from previous turns of conversation.
+        """
+
+    if history:
+        for user_question, ai_response in history:
+            template += f"""
+        Question:
+        {user_question}
+
+        SQL Query:
+        {ai_response}
+        """
+
+    template += f"""
         Question:
         {prompt}
 

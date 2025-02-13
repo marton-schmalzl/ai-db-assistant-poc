@@ -2,6 +2,7 @@ import mysql.connector
 import mysql.connector
 import os
 from dotenv import load_dotenv
+import uuid
 
 from ai_backends.lm_studio import LmStudioAI
 from ai_backends.gemini_ai import GeminiAI
@@ -88,7 +89,7 @@ def get_db_schema(conn):
     finally:
         cursor.close()
 
-def generate_sql_query(prompt, schema, ai_backend_name):
+def generate_sql_query(prompt, schema, ai_backend_name, thread_id=None):
     if ai_backend_name == "gemini":
         ai_backend = GeminiAI()
     elif ai_backend_name == "deepseek":
@@ -97,7 +98,7 @@ def generate_sql_query(prompt, schema, ai_backend_name):
         ai_backend = LmStudioAI()
     else:
         raise ValueError(f"Unsupported AI backend: {ai_backend_name}")
-    return ai_backend.generate_query(prompt, schema)
+    return ai_backend.generate_query(prompt, schema, thread_id)
 
 def execute_query(conn, query):
     cursor = conn.cursor()
@@ -140,12 +141,36 @@ def main():
     if not ai_backend_name:
         ai_backend_name = "gemini" # Default to gemini if not set in env
 
+    ai_backend = None
+    if ai_backend_name == "gemini":
+        ai_backend = GeminiAI()
+    elif ai_backend_name == "deepseek":
+        ai_backend = DeepSeekAI()
+    elif ai_backend_name == "lm-studio":
+        ai_backend = LmStudioAI()
+    else:
+        raise ValueError(f"Unsupported AI backend: {ai_backend_name}")
+
+    thread_id = None
+
     while True:
-        user_prompt = input("Ask me anything about the database (or type 'exit' to quit): ")
+        user_prompt = input("Ask me anything about the database (or type 'exit' to quit, 'new thread' to start a new thread, 'stop thread' to stop the current thread): ")
         if user_prompt.lower() == 'exit':
             break
+        elif user_prompt.lower() == 'new thread':
+            thread_id = str(uuid.uuid4())
+            print(f"Starting a new thread with ID: {thread_id}")
+            continue
+        elif user_prompt.lower() == 'stop thread':
+            if thread_id:
+                ai_backend.stop_thread(thread_id)
+                print(f"Stopped thread with ID: {thread_id}")
+                thread_id = None
+            else:
+                print("No thread to stop.")
+            continue
 
-        sql_query = generate_sql_query(user_prompt, schema, ai_backend_name)
+        sql_query = generate_sql_query(user_prompt, schema, ai_backend_name, thread_id)
         print("\nGenerated SQL Query:")
         print(sql_query)
 
