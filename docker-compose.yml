@@ -8,7 +8,9 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mydb
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Uncomment next line and create an init.sql file to pre-seed your db for testing.
+      # If an emtpy db was already created, you need to remove the volume to re-init with data
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - db_data:/var/lib/mysql
 volumes:
   db_data:

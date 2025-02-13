@@ -1,9 +1,12 @@
 import mysql.connector
-import google.generativeai as genai
+import mysql.connector
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+from ai_backends.gemini_ai import GeminiAI
+from ai_backends.deepseek_ai import DeepSeekAI
 
 def get_db_connection(debug=False):
     db_host = input("Enter MySQL Host (default: localhost): ") or "localhost"
@@ -75,7 +78,7 @@ def get_db_schema(conn):
     FOREIGN KEY ({column_name}) REFERENCES {ref_table_name}({ref_column_name}),"""
                 sql_schema = sql_schema.rstrip(',') + "\n)"; # Remove trailing comma and add closing parenthesis
             else:
-                sql_schema += "\n)";
+                sql_schema += "\n)"
             sql_schema += ";\n\n"
         return sql_schema
     except mysql.connector.Error as e:
@@ -84,35 +87,14 @@ def get_db_schema(conn):
     finally:
         cursor.close()
 
-def generate_sql_query(prompt, schema, gemini_api_key):
-    genai.configure(api_key=gemini_api_key)
-    model = genai.GenerativeModel('gemini-pro')
-
-    prompt_content = f"""
-    **IMPORTANT and CRITICAL INSTRUCTION**: Generate a valid SQL query with comments to answer the question based **EXCLUSIVELY** on the provided database schema.
-    Your SQL query **MUST ONLY** use tables and columns that are **explicitly defined** in the provided schema.
-    **ABSOLUTELY DO NOT** use any tables or columns that are **NOT** present in the schema.
-    If the schema does not contain the necessary tables or columns to answer the question, then return a comment saying "Schema does not contain necessary columns or tables to answer question."
-    Ensure that all information is retrieved from the **correct tables** as defined in the schema. Use JOINs only when necessary and explicitly indicated by relationships within the schema.
-    It is **ABSOLUTELY CRUCIAL** to pay meticulous attention to the schema and column names. 
-    **Column names are case-sensitive**. Your generated SQL query **MUST ALSO BE case-sensitive** and accurately reflect the schema's case.
-    To reiterate, **UNDER NO CIRCUMSTANCES** should you invent or assume the existence of tables or columns that are not in the provided schema.
-    Return **ONLY** the raw SQL query, without any markdown wrappers, as plain text.
-
-    Database Schema:
-    {schema}
-
-    Question:
-    {prompt}
-
-    SQL Query:
-    """
-
-    response = model.generate_content(prompt_content)
-    # Strip markdown formatting
-    sql_query = response.text
-    sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
-    return sql_query
+def generate_sql_query(prompt, schema, ai_backend_name):
+    if ai_backend_name == "gemini":
+        ai_backend = GeminiAI()
+    elif ai_backend_name == "deepseek":
+        ai_backend = DeepSeekAI()
+    else:
+        raise ValueError(f"Unsupported AI backend: {ai_backend_name}")
+    return ai_backend.generate_query(prompt, schema)
 
 def execute_query(conn, query):
     cursor = conn.cursor()
@@ -151,18 +133,16 @@ def main():
         conn.close()
         return
 
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_api_key:
-        print("Error: GEMINI_API_KEY environment variable not set.")
-        conn.close()
-        return
+    ai_backend_name = os.getenv("AI_BACKEND")
+    if not ai_backend_name:
+        ai_backend_name = "gemini" # Default to gemini if not set in env
 
     while True:
         user_prompt = input("Ask me anything about the database (or type 'exit' to quit): ")
         if user_prompt.lower() == 'exit':
             break
 
-        sql_query = generate_sql_query(user_prompt, schema, gemini_api_key)
+        sql_query = generate_sql_query(user_prompt, schema, ai_backend_name)
         print("\nGenerated SQL Query:")
         print(sql_query)
 
